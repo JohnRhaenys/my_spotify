@@ -29,11 +29,11 @@ class Slider(QWidget):
         layout.addWidget(self.slider)
         self.setLayout(layout)
 
-    def set_style(self, style):
+    def set_style(self, style) -> None:
         self.slider.setStyleSheet(style)
 
-    def get_value(self):
+    def get_value(self) -> int:
         return self.slider.value()
 
-    def set_value(self, value):
+    def set_value(self, value) -> None:
         self.slider.setValue(value)
