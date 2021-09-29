@@ -124,7 +124,28 @@ SLIDER = f"""
 """
 
 
-LIST = f"""QWidget {{
+SONGS_LIST = f"""QWidget {{
+        background-color: {colors.DARK_GRAY};
+    }}
+    
+    QWidget::item:selected {{ 
         background-color: {colors.DARK_GRAY};
     }}
 """
+
+PLAYLIST_LIST = f"""QWidget {{
+        background-color: {colors.BLACK};
+    }}
+
+    QWidget::item:selected {{ 
+        background-color: {colors.BLACK};
+    }}
+"""
+
+
+
+PLAYLIST_TITLE = f"""QWidget{{
+    color: {colors.WHITE};
+    font-size: 52px;
+    font-weight: bold;
+}}"""
