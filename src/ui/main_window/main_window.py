@@ -1,10 +1,20 @@
-from PyQt5 import QtCore, QtWidgets
+import typing
 
-from src.core.models.playlist_model import Playlist
-from src.core.models.song_model import Song
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication
+
+from src.core.constants import STORAGE_TEMP_THUMBNAILS_FOLDER
+from src.core.database import data_manager
+from src.core.database.models.playlist_model import Playlist
+from src.core.utils import utils, os_utils
+from src.core.youtube import youtube_search
 from src.ui.main_window import styles
 from src.ui.widgets.audio_controller_widget.audio_controller_widget import AudioControllerWidget
+from src.ui.widgets.dialog_box.dialog_box import DialogBox
 from src.ui.widgets.list_widget.list_widget import ListWidget
+from src.ui.widgets.playlist_card.playlist_card import PlaylistCard
+from src.ui.widgets.song_card.song_card import SongCard
 from src.ui.widgets.youtube_video_card.youtube_video_card import YoutubeVideoCard
 
 
@@ -88,7 +98,8 @@ class MainWindow(object):
         self.line.setFixedHeight(1)
         self.left_area.addLayout(self.create_playlist_hbox)
         self.left_area.addWidget(self.line)
-        self.playlist_list = ListWidget(parent=self.left_area_2)
+        self.playlist_list = ListWidget(main_window_reference=self, parent=self.left_area_2)
+        self.playlist_list.setStyleSheet(styles.PLAYLIST_LIST)
         self.left_area.addWidget(self.playlist_list)
 
         # RIGHT UPPER AREA ---------------------------------------------------------------------
@@ -102,24 +113,29 @@ class MainWindow(object):
         self.search_label.setStyleSheet(styles.GRAY_TEXT_BOLD)
         self.right_area.addWidget(self.search_label)
 
-        self.search_box = QtWidgets.QTextEdit(self.right_area_2)
+        self.search_box = QtWidgets.QLineEdit(self.right_area_2)
         self.search_box.setMinimumSize(QtCore.QSize(200, 25))
         self.search_box.setMaximumSize(QtCore.QSize(200, 25))
         self.search_box.setStyleSheet(styles.SEARCH_BOX)
         self.right_area.addWidget(self.search_box)
 
-        self.songs_list = ListWidget(parent=self.right_area_2)
+        self.playlist_name_label = QtWidgets.QLabel(self.right_area_2)
+        self.playlist_name_label.setStyleSheet(styles.PLAYLIST_TITLE)
+        self.playlist_name_label.setAlignment(Qt.AlignLeft)
+        self.right_area.addWidget(self.playlist_name_label)
+
+        self.playlist_info_label = QtWidgets.QLabel(self.right_area_2)
+        self.playlist_info_label.setStyleSheet(styles.GRAY_TEXT)
+        self.right_area.addWidget(self.playlist_info_label)
+
+        self.songs_list = ListWidget(parent=self.right_area_2, main_window_reference=self)
         self.right_area.addWidget(self.songs_list)
         self.verticalLayout_2.addWidget(self.upper_area)
-        self.songs_list.setStyleSheet(styles.LIST)
+        self.songs_list.setStyleSheet(styles.SONGS_LIST)
 
         # BOTTOM AREA ---------------------------------------------------------------------
         playlist = Playlist(
-            id=0, name='Playlist teste',
-            songs={
-                0: Song(id=0, name='Musica teste', date_added='DAta teste',
-                        duration='Duracao teste', thumbnail_path='', path='teste')
-            })
+            id=0, name='Playlist teste')
         self.audio_controller = AudioControllerWidget(playlist=playlist, parent=self.parent)
         self.verticalLayout_2.addWidget(self.audio_controller.bottom_area)
 
@@ -127,18 +143,100 @@ class MainWindow(object):
         main_window.setCentralWidget(self.central_widget)
         QtCore.QMetaObject.connectSlotsByName(main_window)
 
+        # BACKEND ---------------------------------------------------------------------
         self.set_listeners()
+        self.populate_playlist_list()
+        self.populate_songs_list(playlist_id=1)
 
-    def set_listeners(self):
+    def set_listeners(self) -> None:
         self.create_playlist_button.clicked.connect(self.create_playlist_button_clicked)
+        self.search_box.returnPressed.connect(self.enter_pressed)
 
-    def create_playlist_button_clicked(self):
+    def create_playlist_button_clicked(self) -> None:
         print('Create playlist button')
 
-    def load_data(self):
+    def enter_pressed(self) -> None:
+        current_playlist_name = self.playlist_name_label.text()
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        self.playlist_name_label.setText('Searching ...')
+        self.playlist_info_label.setHidden(True)
+        QApplication.processEvents()
+        try:
+            self.clear_temp_thumbnails()
+            search_string = self.search_box.text()
+            videos = youtube_search.search_for_videos(search_string)
+            if len(videos) == 0:
+                DialogBox(icon='danger', title='Oops', message='No videos have been found')
+                self.playlist_name_label.setText(current_playlist_name)
+                self.playlist_info_label.setHidden(False)
+                return
+
+            # Sort the videos by view count in descending order
+            videos.sort(key=lambda vid: vid.views, reverse=True)
+
+            video_cards = []
+            for index, video in enumerate(videos):
+                thumbnail_path = video.download_thumbnail()
+                video_card = YoutubeVideoCard(
+                    index=str(index + 1),
+                    thumbnail_path=thumbnail_path,
+                    title=video.title,
+                    views=video.views_extense,
+                    duration=video.duration,
+                    video_id=video.id,
+                    video_url=video.url
+                )
+                video_cards.append(video_card)
+            self.populate_video_card_list(video_cards)
+            self.playlist_name_label.setText(f'Results for "{search_string}"')
+
+        except Exception as e:
+            DialogBox(icon='danger', title='Error', message=f'Something went wrong searching for the videos\n{e}')
+            print(e)
+            self.playlist_name_label.setText(current_playlist_name)
+            self.playlist_info_label.setHidden(False)
+        QApplication.restoreOverrideCursor()
+
+    def clear_temp_thumbnails(self) -> None:
+        os_utils.clear_folder(STORAGE_TEMP_THUMBNAILS_FOLDER)
+
+    def load_data(self) -> None:
         # Load current playlist
         pass
 
-    def populate_songs_list(self):
-        items = [YoutubeVideoCard('11', '12', '13', '14', '15'), YoutubeVideoCard('21', '22', '23', '24', '25')]
-        self.songs_list.set_items(items)
+    def populate_playlist_list(self) -> None:
+        data = data_manager.get_all_playlists()
+        playlists = []
+        if data is not None:
+            for playlist in data:
+                playlist_card = PlaylistCard(id=playlist.id, name=playlist.name)
+                playlists.append(playlist_card)
+        self.playlist_list.set_items(playlists)
+
+    def populate_songs_list(self, playlist_id: int) -> None:
+        playlist = data_manager.get_playlist(playlist_id=playlist_id)
+        self.playlist_name_label.setText(playlist.name)
+        song_list = []
+        if playlist is not None:
+            songs = playlist.get_songs(data_manager.engine)
+            playlist_total_time = 0
+            for index, song_id in enumerate(songs):
+                song = data_manager.get_song(song_id)
+                song_card = SongCard(
+                    id=song_id,
+                    index=index + 1,
+                    name=song.name,
+                    date_added=utils.date_formatter(str(song.updated_at)),
+                    duration=song.duration_in_seconds,
+                    thumbnail_path=song.thumbnail_path,
+                    parent=self.songs_list
+                )
+                playlist_total_time += song.duration_in_seconds
+                song_list.append(song_card)
+            song_count = str(len(songs))
+            self.playlist_info_label.setHidden(False)
+            self.playlist_info_label.setText(f'{song_count} songs, {utils.time_formatter_extense(playlist_total_time)}')
+        self.songs_list.set_items(song_list)
+
+    def populate_video_card_list(self, video_cards: typing.List[YoutubeVideoCard]) -> None:
+        self.songs_list.set_items(video_cards)
