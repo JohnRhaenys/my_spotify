@@ -158,7 +158,7 @@ class AudioControllerWidget(QWidget):
 
         self.playlist = playlist
         self.player = QMediaPlayer()
-        self.player.setPlaylist(self.playlist)
+        # self.player.setPlaylist(self.playlist)
         self.player.setVolume(self.volume_slider.get_value())
 
     def set_listeners(self):
@@ -167,14 +167,14 @@ class AudioControllerWidget(QWidget):
         self.next_button.clicked.connect(self.next_button_clicked)
         self.volume_button.clicked.connect(self.volume_button_clicked)
 
-    def previous_button_clicked(self):
+    def previous_button_clicked(self) -> None:
         print('Previous song button')
 
-    def play_pause_button_clicked(self):
+    def play_pause_button_clicked(self) -> None:
         print('Play/pause song button')
 
-    def next_button_clicked(self):
+    def next_button_clicked(self) -> None:
         print('Next song button')
 
-    def volume_button_clicked(self):
+    def volume_button_clicked(self) -> None:
         print('Volume button')
