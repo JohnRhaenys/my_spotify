@@ -32,19 +32,23 @@ LIGHT_TEXT = f"""QWidget{{
     color: {colors.LIGHTEST_GRAY};
 }}"""
 
-PLAYLIST_BUTTON = f"""QWidget{{
-        background-color: {colors.GREEN};
-        color: {colors.BLACK};
+REMOVE_BUTTON = f"""QWidget{{
+        background-color: {colors.DARK_GRAY};
+        color: {colors.WHITE};
         font-weight: bold;
         border-radius: 20px;
-        border: 2px solid;
-        border-color: {colors.BLACK};
+        border: 1px solid;
+        border-color: {colors.WHITE};
     }}
 
     QWidget::hover{{
-        border: 1px solid;
+        background-color: {colors.DARK_GRAY};
+        color: {colors.WHITE};
+        font-weight: bold;
+        border-radius: 20px;
+        border: 2px solid;
+        border-color: {colors.WHITE};
         font-size: 16px;
-        border-color: {colors.BLACK};
     }}
 """
 
@@ -56,26 +60,6 @@ LINE = f"""QWidget{{
 SEARCH_BOX = f"""QWidget{{
         background-color: {colors.WHITE};
         border-radius: 12px;
-    }}
-"""
-
-ADD_BUTTON = f"""QWidget{{
-        background-color: {colors.DARK_GRAY};
-        color: {colors.WHITE};
-        font-weight: bold;
-        border-radius: 20px;
-        border: 1px solid;
-        border-color: {colors.WHITE};
-    }}
-
-    QWidget::hover{{
-        background-color: {colors.DARK_GRAY};
-        color: {colors.WHITE};
-        font-weight: bold;
-        border-radius: 20px;
-        border: 2px solid;
-        border-color: {colors.WHITE};
-        font-size: 16px;
     }}
 """
 
@@ -149,4 +133,3 @@ LIST = f"""QWidget {{
         background-color: {colors.DARK_GRAY};
     }}
 """
-
