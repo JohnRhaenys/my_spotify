@@ -1,7 +1,9 @@
 import os
 import shutil
+import time
 
 from src.core.exceptions import FolderDoesNotExistException
+from pathlib import Path
 
 
 def create_folder(dir_path: str) -> str or None:
@@ -22,9 +24,9 @@ def is_directory_empty(dir_path: str) -> bool:
     return len(os.listdir(dir_path)) == 0
 
 
-def delete_folder(picture_directory_path: str) -> bool:
+def delete_folder(directory_path: str) -> bool:
     try:
-        shutil.rmtree(picture_directory_path)
+        shutil.rmtree(directory_path)
         return True
     except Exception as e:
         print(e)
@@ -66,10 +68,34 @@ def move_file(file_path: str, other_folder: str) -> bool:
 
 def clear_folder(folder_path: str) -> bool:
     try:
-        file_list = [f for f in os.listdir(folder_path)]
-        for f in file_list:
-            os.remove(os.path.join(folder_path, f))
+        file_list = [file for file in os.listdir(folder_path)]
+        for file in file_list:
+            os.remove(os.path.join(folder_path, file))
         return True
     except Exception as e:
         print(e)
         return False
+
+
+def delete_file(file_path):
+    try:
+        os.remove(file_path)
+        return file_path
+    except Exception as e:
+        print(e)
+        return None
+
+
+def rename_file(original_filepath, new_file_name):
+    original_filename = get_filename(original_filepath)
+    new_file = original_filepath.replace(original_filename, new_file_name)
+    os.rename(original_filepath, new_file)
+
+
+def get_file_directory(filepath):
+    path = Path(filepath)
+    return path.parent
+
+
+def current_milli_time():
+    return round(time.time() * 1000)
