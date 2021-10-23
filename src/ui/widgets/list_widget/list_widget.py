@@ -54,7 +54,9 @@ class ListWidget(QWidget):
         item_info = item_data_manager.fetch_item_data(item)
         if item_info['classname'] == PlaylistCard.__name__:
             playlist_id = item_info['data']['id']
+            playlist_name = item_info['data']['name']
             self.main_window_reference.populate_songs_list(playlist_id=playlist_id)
+            self.main_window_reference.current_playlist = PlaylistCard(id=playlist_id, name=playlist_name)
 
     def clear(self):
         self.list.clear()
