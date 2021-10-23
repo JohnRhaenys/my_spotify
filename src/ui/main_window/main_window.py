@@ -23,8 +23,13 @@ class MainWindow(object):
 
         self.main_window = main_window
 
+        # Load the first playlist
+        playlist = data_manager.get_playlist(playlist_id=1)
+        playlist_card = PlaylistCard(id=playlist.id, name=playlist.name)
+        self.current_playlist = playlist_card
+
         # Main window
-        self.main_window.setWindowTitle("Spotify Free")
+        self.main_window.setWindowTitle('Spotify Free')
         self.main_window.showMaximized()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -79,14 +84,14 @@ class MainWindow(object):
         self.left_area.setContentsMargins(12, 12, 12, 12)
 
         self.playlists_label = QtWidgets.QLabel(self.left_area_2)
-        self.playlists_label.setText("PLAYLISTS")
+        self.playlists_label.setText('PLAYLISTS')
         self.playlists_label.setStyleSheet(styles.GRAY_TEXT_BOLD)
 
         self.left_area.addWidget(self.playlists_label)
         self.create_playlist_hbox = QtWidgets.QHBoxLayout()
 
         self.create_playlist_button = QtWidgets.QPushButton(self.left_area_2)
-        self.create_playlist_button.setText("Create Playlist")
+        self.create_playlist_button.setText('Create Playlist')
         self.create_playlist_button.setFixedHeight(40)
         self.create_playlist_button.setStyleSheet(styles.PLAYLIST_BUTTON)
         self.create_playlist_hbox.addWidget(self.create_playlist_button)
@@ -109,7 +114,7 @@ class MainWindow(object):
         self.right_area.setContentsMargins(12, 12, 12, 12)
 
         self.search_label = QtWidgets.QLabel(self.right_area_2)
-        self.search_label.setText("Search")
+        self.search_label.setText('Search')
         self.search_label.setStyleSheet(styles.GRAY_TEXT_BOLD)
         self.right_area.addWidget(self.search_label)
 
@@ -119,7 +124,7 @@ class MainWindow(object):
         self.search_box.setStyleSheet(styles.SEARCH_BOX)
         self.right_area.addWidget(self.search_box)
 
-        self.playlist_name_label = QtWidgets.QLabel(self.right_area_2)
+        self.playlist_name_label = QtWidgets.QLineEdit(self.right_area_2)
         self.playlist_name_label.setStyleSheet(styles.PLAYLIST_TITLE)
         self.playlist_name_label.setAlignment(Qt.AlignLeft)
         self.right_area.addWidget(self.playlist_name_label)
@@ -134,9 +139,7 @@ class MainWindow(object):
         self.songs_list.setStyleSheet(styles.SONGS_LIST)
 
         # BOTTOM AREA ---------------------------------------------------------------------
-        playlist = Playlist(
-            id=0, name='Playlist teste')
-        self.audio_controller = AudioControllerWidget(playlist=playlist, parent=self.parent)
+        self.audio_controller = AudioControllerWidget(parent=self.parent)
         self.verticalLayout_2.addWidget(self.audio_controller.bottom_area)
 
         self.gridLayout.addWidget(self.parent, 0, 0, 1, 1)
@@ -146,16 +149,27 @@ class MainWindow(object):
         # BACKEND ---------------------------------------------------------------------
         self.set_listeners()
         self.populate_playlist_list()
-        self.populate_songs_list(playlist_id=1)
+        self.populate_songs_list(self.current_playlist.get_id())
 
     def set_listeners(self) -> None:
         self.create_playlist_button.clicked.connect(self.create_playlist_button_clicked)
-        self.search_box.returnPressed.connect(self.enter_pressed)
+        self.search_box.returnPressed.connect(self.enter_key_pressed)
+        self.playlist_name_label.returnPressed.connect(self.playlist_name_label_enter_pressed)
+
+    def playlist_name_label_enter_pressed(self) -> None:
+        data_manager.edit_playlist_name(self.current_playlist.get_id(), new_name=self.playlist_name_label.text())
+        self.populate_playlist_list()
+        DialogBox(icon='success', title='Ok', message='Your playlist name has changed!')
 
     def create_playlist_button_clicked(self) -> None:
-        print('Create playlist button')
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        new_playlist = Playlist(name='New playlist')
+        data_manager.insert_new_playlist(playlist=new_playlist)
+        QApplication.restoreOverrideCursor()
+        DialogBox(icon='success', title='Ok', message='A new playlist has been created!')
+        self.populate_playlist_list()
 
-    def enter_pressed(self) -> None:
+    def enter_key_pressed(self) -> None:
         current_playlist_name = self.playlist_name_label.text()
         QApplication.setOverrideCursor(Qt.WaitCursor)
         self.playlist_name_label.setText('Searching ...')
@@ -166,6 +180,7 @@ class MainWindow(object):
             search_string = self.search_box.text()
             videos = youtube_search.search_for_videos(search_string)
             if len(videos) == 0:
+                QApplication.restoreOverrideCursor()
                 DialogBox(icon='danger', title='Oops', message='No videos have been found')
                 self.playlist_name_label.setText(current_playlist_name)
                 self.playlist_info_label.setHidden(False)
@@ -200,11 +215,8 @@ class MainWindow(object):
     def clear_temp_thumbnails(self) -> None:
         os_utils.clear_folder(STORAGE_TEMP_THUMBNAILS_FOLDER)
 
-    def load_data(self) -> None:
-        # Load current playlist
-        pass
-
     def populate_playlist_list(self) -> None:
+        self.playlist_list.clear()
         data = data_manager.get_all_playlists()
         playlists = []
         if data is not None:
@@ -214,9 +226,11 @@ class MainWindow(object):
         self.playlist_list.set_items(playlists)
 
     def populate_songs_list(self, playlist_id: int) -> None:
+        self.songs_list.clear()
         playlist = data_manager.get_playlist(playlist_id=playlist_id)
         self.playlist_name_label.setText(playlist.name)
         song_list = []
+        songs_paths = []
         if playlist is not None:
             songs = playlist.get_songs(data_manager.engine)
             playlist_total_time = 0
@@ -228,15 +242,20 @@ class MainWindow(object):
                     name=song.name,
                     date_added=utils.date_formatter(str(song.updated_at)),
                     duration=song.duration_in_seconds,
+                    playlist_id=playlist_id,
+                    video_id=song.video_id,
                     thumbnail_path=song.thumbnail_path,
-                    parent=self.songs_list
+                    parent=self.songs_list,
+                    main_window_reference=self
                 )
                 playlist_total_time += song.duration_in_seconds
                 song_list.append(song_card)
+                songs_paths.append(song.file_path)
             song_count = str(len(songs))
             self.playlist_info_label.setHidden(False)
             self.playlist_info_label.setText(f'{song_count} songs, {utils.time_formatter_extense(playlist_total_time)}')
         self.songs_list.set_items(song_list)
+        self.audio_controller.populate_playlist(songs_paths)
 
     def populate_video_card_list(self, video_cards: typing.List[YoutubeVideoCard]) -> None:
         self.songs_list.set_items(video_cards)
