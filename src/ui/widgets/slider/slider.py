@@ -7,10 +7,12 @@ from src.ui.main_window import styles
 class Slider(QWidget):
     def __init__(
             self, min_width, max_width, default_value=0,
-            orientation=Qt.Horizontal, style=styles.SLIDER, parent=None):
+            orientation=Qt.Horizontal, style=styles.SLIDER, parent=None, value_changed=None):
         super(Slider, self).__init__(parent)
         layout = QHBoxLayout()
         self.slider = QSlider(self)
+        if value_changed is not None:
+            self.slider.valueChanged.connect(value_changed)
 
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
