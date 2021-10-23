@@ -103,3 +103,51 @@ def insert_song_into_playlist(playlist_id, song_id) -> bool:
     except Exception as e:
         print(e)
         return False
+
+
+def remove_song_from_playlist(playlist_id: int, song_id: int) -> None:
+    query = f'DELETE FROM playlists_songs WHERE playlist_id = {playlist_id} AND song_id = {song_id};'
+    engine.execute(query)
+
+
+def remove_song_if_not_in_any_playlist(song_id: int) -> bool:
+    try:
+        # Check if the song is present in any playlist
+        verification_query = f'SELECT * FROM playlists_songs WHERE song_id = {song_id};'
+        result = engine.execute(verification_query)
+        result_list = [row[0] for row in result]
+
+        # If the song is not present in any playlist, remove it from the database
+        if len(result_list) > 0:
+            return False
+
+        remove_query = f'DELETE FROM songs WHERE id = {song_id};'
+        engine.execute(remove_query)
+        return True
+    except Exception as e:
+        print(e)
+        return False
+
+
+def edit_playlist_name(playlist_id: int, new_name: str) -> bool:
+    try:
+        query = f'UPDATE playlists SET name = "{new_name}" WHERE id = {playlist_id};'
+        engine.execute(query)
+        return True
+    except Exception as e:
+        print(e)
+        return False
+
+
+def insert_new_playlist(playlist: Playlist) -> int:
+    try:
+        session = Session(bind=engine)
+        session.add(playlist)
+        session.flush()
+        playlist_id = playlist.id
+        session.commit()
+        session.close()
+        return playlist_id
+    except Exception as e:
+        print(e)
+        return -1
