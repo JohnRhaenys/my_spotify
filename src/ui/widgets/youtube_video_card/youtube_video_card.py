@@ -74,10 +74,18 @@ class YoutubeVideoCard(QWidget):
         self.set_styles()
 
     def add_to_playlist(self, _) -> None:
+
+        if self.already_exists():
+            DialogBox(icon='warning', title='Info', message='This song is already in your playlist')
+            return
+
         QApplication.setOverrideCursor(Qt.WaitCursor)
         try:
+            folder_path = f'{os.path.join(STORAGE_SONGS_FOLDER, self.video_id)}'
+            file_path = f'{os.path.join(folder_path, self.video_id)}.mp3'
+
             # Download the video in MP3 format
-            folder_path, file_path = self.download_mp3()
+            self.download_mp3()
 
             # Move the thumbnail to the same folder as the song
             temp_thumbnail_path = f'{os.path.join(STORAGE_TEMP_THUMBNAILS_FOLDER, self.video_id)}.jpg'
@@ -95,6 +103,7 @@ class YoutubeVideoCard(QWidget):
 
             song_id = data_manager.insert_song(song)
             if song_id == -1:
+                QApplication.restoreOverrideCursor()
                 DialogBox(
                     icon='warning',
                     title='Error',
@@ -104,7 +113,7 @@ class YoutubeVideoCard(QWidget):
 
             try:
                 data_manager.insert_song_into_playlist(playlist_id=1, song_id=song_id)
-
+                QApplication.restoreOverrideCursor()
                 DialogBox(
                     icon='success',
                     title='Ok',
@@ -128,20 +137,16 @@ class YoutubeVideoCard(QWidget):
         QApplication.restoreOverrideCursor()
 
     def download_mp3(self) -> typing.List[str] or None:
-        song_folder_path = f'{os.path.join(STORAGE_SONGS_FOLDER, self.video_id)}'
-        if self.already_exists():
-            return song_folder_path, f'{os.path.join(song_folder_path, self.video_id)}.mp3'
         try:
             yt = YouTube(self.video_url)
             video = yt.streams.filter(only_audio=True).first()
             file_name = self.video_id
 
             # Download the mp3 file and store it in the songs folder
-            file_path = video.download(
+            video.download(
                 output_path=f'{os.path.join(STORAGE_SONGS_FOLDER, self.video_id)}',
                 filename=f'{file_name}.mp3'
             )
-            return song_folder_path, file_path
         except Exception as e:
             raise Exception(e)
 
