@@ -237,23 +237,17 @@ class MainWindow(object):
             for index, song_id in enumerate(songs):
                 song = data_manager.get_song(song_id)
                 song_card = SongCard(
-                    id=song_id,
-                    index=index + 1,
-                    name=song.name,
-                    date_added=utils.date_formatter(str(song.updated_at)),
-                    duration=song.duration_in_seconds,
+                    song=song,
+                    card_index=index + 1,
                     playlist_id=playlist_id,
-                    video_id=song.video_id,
-                    thumbnail_path=song.thumbnail_path,
                     parent=self.songs_list,
                     main_window_reference=self
                 )
                 playlist_total_time += song.duration_in_seconds
                 song_list.append(song_card)
                 songs_paths.append(song.file_path)
-            song_count = str(len(songs))
             self.playlist_info_label.setHidden(False)
-            self.playlist_info_label.setText(f'{song_count} songs, {utils.time_formatter_extense(playlist_total_time)}')
+            self.playlist_info_label.setText(f'{str(len(songs))} songs, {utils.time_formatter_extense(playlist_total_time)}')
         self.songs_list.set_items(song_list)
         self.audio_controller.populate_playlist(songs_paths)
 
