@@ -6,7 +6,11 @@ from PyQt5.QtMultimedia import QMediaPlayer, QMediaPlaylist, QMediaContent
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QSizePolicy, QLabel, QSpacerItem, \
     QVBoxLayout, QLayout, QPushButton
 
+from src.core.database import data_manager
+from src.core.database.data_manager import get_all_playlists
+from src.core.utils import utils
 from src.ui.main_window import styles
+from src.ui.widgets.dialog_box.dialog_box import DialogBox
 from src.ui.widgets.slider.slider import Slider
 
 
@@ -20,8 +24,13 @@ class AudioControllerWidget(QWidget):
         self.player.setPlaylist(self.playlist)
         self.playing = False
         self.current_song_index = 1  # Control variable. We start from 1 because this is the first ID
-        self.current_song_thumbnail_path = 'assets/images/default_thumbnail.png'
-        self.current_song = None
+        self.first_time = True
+
+        self.current_song = data_manager.get_first_song(get_all_playlists()[0].id)
+        self.current_song_thumbnail_path = \
+            'assets/images/default_thumbnail.png' \
+            if self.current_song is None \
+            else self.current_song.thumbnail_path
 
         # FRONTEND
         layout = QHBoxLayout()
@@ -195,14 +204,23 @@ class AudioControllerWidget(QWidget):
         self.player.playlist().previous()
 
     def play_pause_button_clicked(self) -> None:
+
+        if self.current_song is None:
+            DialogBox(icon='warning', title='Oops', message='You have no songs in your playlist')
+            return
+
         if self.playing:
             self.pause()
             self.switch_play_pause_button_icon('play')
             self.current_song_status.setText('Paused')
         else:
-            self.play(song_thumbnail_path=self.current_song_thumbnail_path, resume=True)
+            if self.first_time:
+                self.play(song=self.current_song, resume=False)
+            else:
+                self.play(song=self.current_song, resume=True)
             self.switch_play_pause_button_icon('pause')
             self.current_song_status.setText('Playing')
+        self.song_total_time.setText(utils.time_formatter(self.current_song.duration_in_seconds))
 
     def next_button_clicked(self) -> None:
         self.player.playlist().next()
@@ -224,17 +242,24 @@ class AudioControllerWidget(QWidget):
 
     def play(
             self,
-            song_thumbnail_path='assets/images/default_thumbnail.png',
+            song,
             song_index=None,
             resume=False
     ):
         if resume:
             self.player.play()
         else:
-            self.current_song_index = song_index
-            self.playlist.setCurrentIndex(song_index - 1)
-            self.set_thumbnail(song_thumbnail_path)
+            self.current_song = song
+            if self.first_time:
+                self.current_song_index = 1
+            else:
+                self.current_song_index = song_index
+            self.playlist.setCurrentIndex(self.current_song_index - 1)
+            self.set_thumbnail(song.thumbnail_path)
+
+        self.player.play()
         self.playing = True
+        self.first_time = False
 
     def pause(self):
         self.player.pause()
