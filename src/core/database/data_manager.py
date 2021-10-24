@@ -28,6 +28,12 @@ def get_all_songs() -> typing.List[Song]:
     return songs
 
 
+def get_first_song(playlist_id: int) -> Song or None:
+    playlist = get_playlist(playlist_id)
+    playlist_songs_ids = playlist.get_songs(engine)
+    return None if len(playlist_songs_ids) == 0 else get_song(song_id=playlist_songs_ids[0])
+
+
 def get_song(song_id: int) -> Song:
     """
     Retrieves ONE song from the database.
