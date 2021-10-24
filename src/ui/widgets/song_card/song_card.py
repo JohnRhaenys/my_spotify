@@ -12,30 +12,23 @@ from src.ui.widgets.song_card import styles
 
 
 class SongCard(QWidget):
-    def __init__(
-            self, id, index, name,
-            date_added, duration, playlist_id, video_id,
-            main_window_reference,
-            thumbnail_path='assets/images/default_thumbnail.png',
-            parent=None,
-    ):
+    def __init__(self, song, card_index, playlist_id, main_window_reference, parent=None):
         super(SongCard, self).__init__(parent)
 
+        # CONTROL VARIABLES --------------------------------------------------------------
+        self.song = song
+        self.index = card_index
+        self.playlist_id = playlist_id
         self.main_window_reference = main_window_reference
 
+        # FRONT-END LAYOUT VARIABLES --------------------------------------------------------------
         self.enterEvent = self.on_mouse_hover
         self.leaveEvent = self.on_mouse_leave
-
-        self.id = id
-        self.playlist_id = playlist_id
-        self.video_id = video_id
-        self.index = index
-        self.song_thumbnail_path = thumbnail_path
 
         self.allQHBoxLayout = QHBoxLayout()
         self.allQHBoxLayout.setSpacing(15)
 
-        self.index_play_pause_button = QLabel(str(index))
+        self.index_play_pause_button = QLabel(str(card_index))
         self.index_play_pause_button.setFixedWidth(25)
         self.index_play_pause_button.setFixedHeight(25)
         self.index_play_pause_button.setAlignment(Qt.AlignCenter)
@@ -48,17 +41,17 @@ class SongCard(QWidget):
         self.song_thumbnail.setFixedHeight(45)
         self.song_thumbnail.setFixedWidth(45)
         self.song_thumbnail.setScaledContents(True)
-        self.set_thumbnail_image(thumbnail_path)
+        self.set_thumbnail_image(self.song.thumbnail_path)
 
-        self.song_name = QLabel(str(name))
+        self.song_name = QLabel(str(self.song.name))
         self.song_name.setFixedHeight(45)
         self.song_name.setFixedWidth(600)
 
-        self.date_added = QLabel(str(date_added))
+        self.date_added = QLabel(str(utils.date_formatter(str(self.song.created_at))))
         self.date_added.setFixedHeight(45)
         self.date_added.setFixedWidth(90)
 
-        self.song_duration = QLabel(utils.time_formatter(duration))
+        self.song_duration = QLabel(utils.time_formatter(self.song.duration_in_seconds))
         self.song_duration.setFixedHeight(45)
 
         self.remove_song_button = QPushButton()
@@ -82,8 +75,9 @@ class SongCard(QWidget):
             self.main_window_reference.audio_controller.current_song_status.setText('Playing')
             self.main_window_reference.audio_controller.song_name.setText(self.song_name.text())
             self.main_window_reference.audio_controller.play(
-                song_thumbnail_path=self.song_thumbnail_path,
-                song_index=self.index, resume=False
+                song=data_manager.get_song(self.song.id),
+                song_index=self.index,
+                resume=False
             )
         else:
             if self.main_window_reference.audio_controller.playing:
@@ -95,12 +89,14 @@ class SongCard(QWidget):
                 self.main_window_reference.audio_controller.current_song_status.setText('Playing')
                 self.main_window_reference.audio_controller.song_name.setText(self.song_name.text())
                 self.main_window_reference.audio_controller.play(
-                    song_thumbnail_path=self.song_thumbnail_path,
-                    song_index=self.index, resume=True
+                    song=data_manager.get_song(self.song.id),
+                    song_index=self.index,
+                    resume=True
                 )
                 pixmap_image = QPixmap('assets/images/pause_white.png')
                 self.main_window_reference.audio_controller.switch_play_pause_button_icon('pause')
             self.index_play_pause_button.setPixmap(pixmap_image)
+        self.main_window_reference.audio_controller.song_total_time.setText(self.song_duration.text())
 
     def remove_song_button_pressed(self, _) -> None:
         answer = QMessageBox.question(
@@ -116,14 +112,15 @@ class SongCard(QWidget):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         try:
             # Remove the song from the playlist
-            data_manager.remove_song_from_playlist(playlist_id=self.playlist_id, song_id=self.id)
+            data_manager.remove_song_from_playlist(playlist_id=self.playlist_id, song_id=self.song.id)
 
             # If the song is not linked to any playlists, remove it from the songs table as well
-            song_removed_completely = data_manager.remove_song_if_not_in_any_playlist(song_id=self.id)
+            song_removed_completely = data_manager.remove_song_if_not_in_any_playlist(song_id=self.song.id)
 
             if song_removed_completely:
-                # Remove the song from the storage folder since we no longer need it
-                os_utils.delete_folder(os.path.join(STORAGE_SONGS_FOLDER, self.video_id))
+                # Delete the song from the storage folder since we no longer need it
+                path = os.path.join(STORAGE_SONGS_FOLDER, self.song.video_id)
+                os_utils.delete_folder(directory_path=path)
 
             QApplication.restoreOverrideCursor()
             DialogBox(
