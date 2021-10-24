@@ -41,6 +41,8 @@ class SongCard(QWidget):
         self.index_play_pause_button.setAlignment(Qt.AlignCenter)
         self.index_play_pause_button.enterEvent = self.on_index_play_pause_button_mouse_hover
         self.index_play_pause_button.mousePressEvent = self.play_pause_song
+        self.index_play_pause_button.setScaledContents(True)
+        self.index_play_pause_button.setAlignment(Qt.AlignCenter)
 
         self.song_thumbnail = QLabel()
         self.song_thumbnail.setFixedHeight(45)
@@ -87,6 +89,8 @@ class SongCard(QWidget):
             if self.main_window_reference.audio_controller.playing:
                 self.main_window_reference.audio_controller.current_song_status.setText('Paused')
                 self.main_window_reference.audio_controller.pause()
+                pixmap_image = QPixmap('assets/images/play_white.png')
+                self.main_window_reference.audio_controller.switch_play_pause_button_icon('play')
             else:
                 self.main_window_reference.audio_controller.current_song_status.setText('Playing')
                 self.main_window_reference.audio_controller.song_name.setText(self.song_name.text())
@@ -94,6 +98,9 @@ class SongCard(QWidget):
                     song_thumbnail_path=self.song_thumbnail_path,
                     song_index=self.index, resume=True
                 )
+                pixmap_image = QPixmap('assets/images/pause_white.png')
+                self.main_window_reference.audio_controller.switch_play_pause_button_icon('pause')
+            self.index_play_pause_button.setPixmap(pixmap_image)
 
     def remove_song_button_pressed(self, _) -> None:
         answer = QMessageBox.question(
@@ -135,10 +142,15 @@ class SongCard(QWidget):
         self.main_window_reference.populate_songs_list(self.playlist_id)
 
     def on_mouse_hover(self, _) -> None:
-        pixmap_image = QPixmap('assets/images/play_white.png')
+        if self.index == self.main_window_reference.audio_controller.current_song_index:
+            if self.main_window_reference.audio_controller.playing:
+                pixmap_image = QPixmap('assets/images/pause_white.png')
+            else:
+                pixmap_image = QPixmap('assets/images/play_white.png')
+        else:
+            pixmap_image = QPixmap('assets/images/play_white.png')
+
         self.index_play_pause_button.setPixmap(pixmap_image)
-        self.index_play_pause_button.setScaledContents(True)
-        self.index_play_pause_button.setAlignment(Qt.AlignCenter)
         self.remove_song_button.setHidden(False)
 
     def on_index_play_pause_button_mouse_hover(self, _) -> None:
