@@ -197,8 +197,12 @@ class AudioControllerWidget(QWidget):
     def play_pause_button_clicked(self) -> None:
         if self.playing:
             self.pause()
+            self.switch_play_pause_button_icon('play')
+            self.current_song_status.setText('Paused')
         else:
             self.play(song_thumbnail_path=self.current_song_thumbnail_path, resume=True)
+            self.switch_play_pause_button_icon('pause')
+            self.current_song_status.setText('Playing')
 
     def next_button_clicked(self) -> None:
         self.player.playlist().next()
@@ -238,3 +242,11 @@ class AudioControllerWidget(QWidget):
 
     def set_thumbnail(self, thumbnail_path):
         self.song_thumbnail.setPixmap(QPixmap(thumbnail_path))
+
+    def switch_play_pause_button_icon(self, state):
+        icon = QIcon()
+        if state == 'play':
+            icon.addPixmap(QPixmap('assets/images/play.png'), QIcon.Normal, QIcon.Off)
+        else:
+            icon.addPixmap(QPixmap('assets/images/pause.png'), QIcon.Normal, QIcon.Off)
+        self.play_pause_button.setIcon(icon)
