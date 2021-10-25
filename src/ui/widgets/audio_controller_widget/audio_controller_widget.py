@@ -23,7 +23,7 @@ class AudioControllerWidget(QWidget):
         self.playlist = QMediaPlaylist(self.player)
         self.player.setPlaylist(self.playlist)
         self.playing = False
-        self.current_song_index = 1  # Control variable. We start from 1 because this is the first ID
+        self.current_song_index = 1  # Control variable. We start from 1 because this it's the first ID
         self.first_time = True
 
         self.current_song = data_manager.get_first_song(get_all_playlists()[0].id)
@@ -204,7 +204,6 @@ class AudioControllerWidget(QWidget):
         self.player.playlist().previous()
 
     def play_pause_button_clicked(self) -> None:
-
         if self.current_song is None:
             DialogBox(icon='warning', title='Oops', message='You have no songs in your playlist')
             return
