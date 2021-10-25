@@ -91,7 +91,7 @@ class SongCard(QWidget):
                 self.main_window_reference.audio_controller.play(
                     song=data_manager.get_song(self.song.id),
                     song_index=self.index,
-                    resume=True
+                    resume=not self.main_window_reference.audio_controller.first_time
                 )
                 pixmap_image = QPixmap('assets/images/pause_white.png')
                 self.main_window_reference.audio_controller.switch_play_pause_button_icon('pause')
