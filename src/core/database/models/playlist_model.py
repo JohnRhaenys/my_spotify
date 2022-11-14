@@ -4,13 +4,14 @@ from sqlalchemy.orm import relationship
 
 from src.core.database.models.base import Base
 
-association_table = Table('playlists_songs', Base.metadata,
-                          Column('id', Integer, primary_key=True),
-                          Column('playlist_id', ForeignKey('playlists.id')),
-                          Column('song_id', ForeignKey('songs.id')),
-                          Column('created_at', DateTime, default=datetime.utcnow),
-                          Column('updated_at', DateTime, default=datetime.utcnow)
-                          )
+association_table = Table(
+    'playlists_songs', Base.metadata,
+    Column('id', Integer, primary_key=True),
+    Column('playlist_id', ForeignKey('playlists.id')),
+    Column('song_id', ForeignKey('songs.id')),
+    Column('created_at', DateTime, default=datetime.utcnow),
+    Column('updated_at', DateTime, default=datetime.utcnow)
+)
 
 
 class Playlist(Base):

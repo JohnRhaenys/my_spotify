@@ -6,7 +6,7 @@ from src.core.exceptions import FolderDoesNotExistException
 from pathlib import Path
 
 
-def create_folder(dir_path: str) -> str or None:
+def create_folder(dir_path):
     try:
         if not folder_exists(dir_path):
             os.makedirs(dir_path)
@@ -16,15 +16,15 @@ def create_folder(dir_path: str) -> str or None:
         return None
 
 
-def folder_exists(dir_path: str) -> bool:
+def folder_exists(dir_path):
     return os.path.isdir(dir_path)
 
 
-def is_directory_empty(dir_path: str) -> bool:
+def is_directory_empty(dir_path):
     return len(os.listdir(dir_path)) == 0
 
 
-def delete_folder(directory_path: str) -> bool:
+def delete_folder(directory_path):
     try:
         shutil.rmtree(directory_path)
         return True
@@ -33,7 +33,7 @@ def delete_folder(directory_path: str) -> bool:
         return False
 
 
-def get_filename(file_path: str) -> str:
+def get_filename(file_path):
     """
     Given the full path to a file, extracts only the name of the file with its extension
     """
@@ -42,19 +42,19 @@ def get_filename(file_path: str) -> str:
     return filename
 
 
-def is_audio_file(file_path: str) -> bool:
+def is_audio_file(file_path):
     return get_file_extension(file_path) in ('.mp3', '.wav')
 
 
-def get_file_extension(file_path: str) -> str:
+def get_file_extension(file_path):
     return os.path.splitext(file_path)[1].lower()
 
 
-def file_exists(file_path: str) -> bool:
+def file_exists(file_path):
     return os.path.isfile(file_path)
 
 
-def move_file(file_path: str, other_folder: str) -> bool:
+def move_file(file_path, other_folder):
     if not folder_exists(other_folder):
         raise FolderDoesNotExistException(f'The folder {other_folder} does not exist.')
 
@@ -66,7 +66,7 @@ def move_file(file_path: str, other_folder: str) -> bool:
         return False
 
 
-def clear_folder(folder_path: str) -> bool:
+def clear_folder(folder_path):
     try:
         file_list = [file for file in os.listdir(folder_path)]
         for file in file_list:

@@ -70,7 +70,7 @@ class SongCard(QWidget):
         self.setLayout(self.allQHBoxLayout)
         self.set_styles()
 
-    def play_pause_song(self, _) -> None:
+    def play_pause_song(self, _):
         if self.index != self.main_window_reference.audio_controller.current_song_index:
             self.main_window_reference.audio_controller.current_song_status.setText('Playing')
             self.main_window_reference.audio_controller.song_name.setText(self.song_name.text())
@@ -98,7 +98,7 @@ class SongCard(QWidget):
             self.index_play_pause_button.setPixmap(pixmap_image)
         self.main_window_reference.audio_controller.song_total_time.setText(self.song_duration.text())
 
-    def remove_song_button_pressed(self, _) -> None:
+    def remove_song_button_pressed(self, _):
         answer = QMessageBox.question(
             self,
             'Remove song',
@@ -138,7 +138,7 @@ class SongCard(QWidget):
         QApplication.restoreOverrideCursor()
         self.main_window_reference.populate_songs_list(self.playlist_id)
 
-    def on_mouse_hover(self, _) -> None:
+    def on_mouse_hover(self, _):
         if self.index == self.main_window_reference.audio_controller.current_song_index:
             if self.main_window_reference.audio_controller.playing:
                 pixmap_image = QPixmap('assets/images/pause_white.png')
@@ -150,14 +150,14 @@ class SongCard(QWidget):
         self.index_play_pause_button.setPixmap(pixmap_image)
         self.remove_song_button.setHidden(False)
 
-    def on_index_play_pause_button_mouse_hover(self, _) -> None:
+    def on_index_play_pause_button_mouse_hover(self, _):
         self.index_play_pause_button.setCursor(QCursor(Qt.PointingHandCursor))
 
-    def on_mouse_leave(self, _) -> None:
+    def on_mouse_leave(self, _):
         self.index_play_pause_button.setText(str(self.index))
         self.remove_song_button.setHidden(True)
 
-    def set_styles(self) -> None:
+    def set_styles(self):
         self.index_play_pause_button.setStyleSheet(styles.REGULAR_GRAY_TEXT_14)
         self.song_thumbnail.setStyleSheet(styles.REGULAR_GRAY_TEXT_14)
         self.song_name.setStyleSheet(styles.REGULAR_GRAY_TEXT_14)
@@ -165,5 +165,5 @@ class SongCard(QWidget):
         self.song_duration.setStyleSheet(styles.REGULAR_GRAY_TEXT_14)
         self.remove_song_button.setStyleSheet(styles.REMOVE_BUTTON)
 
-    def set_thumbnail_image(self, image_path: str) -> None:
+    def set_thumbnail_image(self, image_path):
         self.song_thumbnail.setPixmap(QPixmap(image_path))

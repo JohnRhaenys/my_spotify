@@ -13,7 +13,7 @@ class YouTubeVideo:
         self.views_extense = views_extense
         self.duration = duration
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return f'<YouTubeVideo:' \
                f' id=[{self.id}], ' \
                f'url=[{self.url}], ' \
@@ -23,7 +23,7 @@ class YouTubeVideo:
                f' views_extense=[{self.views_extense}], ' \
                f'duration=[{self.duration}]> '
 
-    def download_thumbnail(self) -> str or None:
+    def download_thumbnail(self):
         try:
             response = requests.get(self.thumbnail_url)
             if response.ok:

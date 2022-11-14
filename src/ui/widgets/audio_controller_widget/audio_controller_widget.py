@@ -1,5 +1,3 @@
-import typing
-
 from PyQt5.QtCore import QSize, QUrl
 from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaPlaylist, QMediaContent
@@ -188,22 +186,22 @@ class AudioControllerWidget(QWidget):
         self.set_listeners()
         self.player.setVolume(self.volume_slider.get_value())
 
-    def set_listeners(self) -> None:
+    def set_listeners(self):
         self.previous_button.clicked.connect(self.previous_button_clicked)
         self.play_pause_button.clicked.connect(self.play_pause_button_clicked)
         self.next_button.clicked.connect(self.next_button_clicked)
         self.volume_button.clicked.connect(self.volume_button_clicked)
 
-    def time_slider_moved(self, position: int) -> None:
+    def time_slider_moved(self, position):
         self.player.setPosition(position)
 
-    def volume_slider_moved(self, volume: int) -> None:
+    def volume_slider_moved(self, volume):
         self.player.setVolume(volume)
 
-    def previous_button_clicked(self) -> None:
+    def previous_button_clicked(self):
         self.player.playlist().previous()
 
-    def play_pause_button_clicked(self) -> None:
+    def play_pause_button_clicked(self):
         if self.current_song is None:
             DialogBox(icon='warning', title='Oops', message='You have no songs in your playlist')
             return
@@ -221,10 +219,10 @@ class AudioControllerWidget(QWidget):
             self.current_song_status.setText('Playing')
         self.song_total_time.setText(utils.time_formatter(self.current_song.duration_in_seconds))
 
-    def next_button_clicked(self) -> None:
+    def next_button_clicked(self):
         self.player.playlist().next()
 
-    def volume_button_clicked(self) -> None:
+    def volume_button_clicked(self):
         if self.volume_slider.get_value() == 0:
             self.volume_slider.set_value(100)
             self.player.setVolume(100)
@@ -232,7 +230,7 @@ class AudioControllerWidget(QWidget):
             self.volume_slider.set_value(0)
             self.player.setVolume(0)
 
-    def populate_playlist(self, songs_paths: typing.List[str]):
+    def populate_playlist(self, songs_paths):
         self.playlist.clear()
         url = QUrl()
         for path in songs_paths:

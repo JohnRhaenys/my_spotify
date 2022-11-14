@@ -142,8 +142,6 @@ PLAYLIST_LIST = f"""QWidget {{
     }}
 """
 
-
-
 PLAYLIST_TITLE = f"""QWidget{{
     color: {colors.WHITE};
     font-size: 52px;

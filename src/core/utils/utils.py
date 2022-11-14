@@ -2,7 +2,7 @@ from datetime import datetime
 import datetime as dt
 
 
-def time_formatter(time_in_seconds: int) -> str:
+def time_formatter(time_in_seconds):
     """
     Formats seconds to a string with hours, minutes and seconds
     :param time_in_seconds: the time, in seconds
@@ -15,7 +15,7 @@ def time_formatter(time_in_seconds: int) -> str:
         return f'{hours}:{minutes}:{seconds}'
 
 
-def time_formatter_extense(time_in_seconds: int) -> str:
+def time_formatter_extense(time_in_seconds):
     """
     Formats seconds to a string with hours, minutes and seconds
     :param time_in_seconds: the time, in seconds
@@ -28,13 +28,13 @@ def time_formatter_extense(time_in_seconds: int) -> str:
         return f'{hours} h {minutes} min {seconds} sec'
 
 
-def date_formatter(date_time_string: str) -> str:
+def date_formatter(date_time_string):
     year, month, day = date_time_string.split(' ')[0].split('-')
     date_time_obj = datetime(int(year), int(month), int(day))
     return date_time_obj.strftime("%b %d, %Y")
 
 
-def get_duration_in_seconds(video_duration: str) -> int:
+def get_duration_in_seconds(video_duration):
     if video_duration.count(':') == 1:
         video_duration = '0:' + video_duration
     ftr = [3600, 60, 1]

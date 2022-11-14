@@ -25,26 +25,26 @@ class PlaylistCard(QWidget):
         self.set_name(name)
         self.set_styles()
 
-    def set_focus(self) -> None:
+    def set_focus(self):
         self.name.setStyleSheet(f"color: {colors.WHITE}")
 
-    def remove_focus(self) -> None:
+    def remove_focus(self):
         self.name.setStyleSheet(f"color: {colors.GRAY}")
 
-    def on_mouse_hover(self, _) -> None:
+    def on_mouse_hover(self, _):
         self.set_focus()
 
-    def on_mouse_leave(self, _) -> None:
+    def on_mouse_leave(self, _):
         self.remove_focus()
 
-    def set_styles(self) -> None:
+    def set_styles(self):
         self.name.setStyleSheet(styles.GRAY_TEXT)
 
-    def set_name(self, value) -> None:
+    def set_name(self, value):
         self.name.setText(value)
 
-    def get_id(self) -> int:
+    def get_id(self):
         return self.id
 
-    def get_name(self) -> str:
+    def get_name(self):
         return self.name.text()

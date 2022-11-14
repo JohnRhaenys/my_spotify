@@ -1,5 +1,3 @@
-import typing
-
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
@@ -18,32 +16,36 @@ from src.ui.widgets.song_card.song_card import SongCard
 from src.ui.widgets.youtube_video_card.youtube_video_card import YoutubeVideoCard
 
 
+def clear_temp_thumbnails():
+    os_utils.clear_folder(STORAGE_TEMP_THUMBNAILS_FOLDER)
+
+
 class MainWindow(object):
     def __init__(self, main_window):
 
         self.main_window = main_window
 
+        self.current_playlist = None
+
         # Load the first playlist
-        playlist = data_manager.get_playlist(playlist_id=1)
-        playlist_card = PlaylistCard(id=playlist.id, name=playlist.name)
-        self.current_playlist = playlist_card
+        self.load_first_playlist()
 
         # Main window
         self.main_window.setWindowTitle('Spotify Free')
         self.main_window.showMaximized()
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.main_window.sizePolicy().hasHeightForWidth())
-        self.main_window.setSizePolicy(sizePolicy)
+        size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        size_policy.setHorizontalStretch(0)
+        size_policy.setVerticalStretch(0)
+        size_policy.setHeightForWidth(self.main_window.sizePolicy().hasHeightForWidth())
+        self.main_window.setSizePolicy(size_policy)
 
         # Central widget
         self.central_widget = QtWidgets.QWidget(main_window)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.central_widget.sizePolicy().hasHeightForWidth())
-        self.central_widget.setSizePolicy(sizePolicy)
+        size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        size_policy.setHorizontalStretch(0)
+        size_policy.setVerticalStretch(0)
+        size_policy.setHeightForWidth(self.central_widget.sizePolicy().hasHeightForWidth())
+        self.central_widget.setSizePolicy(size_policy)
         self.central_widget.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.central_widget.setAutoFillBackground(False)
         self.central_widget.setStyleSheet("")
@@ -62,21 +64,21 @@ class MainWindow(object):
 
         # UPPER AREA ---------------------------------------------------------------------
         self.upper_area = QtWidgets.QSplitter(self.parent)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.upper_area.sizePolicy().hasHeightForWidth())
-        self.upper_area.setSizePolicy(sizePolicy)
+        size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        size_policy.setHorizontalStretch(0)
+        size_policy.setVerticalStretch(0)
+        size_policy.setHeightForWidth(self.upper_area.sizePolicy().hasHeightForWidth())
+        self.upper_area.setSizePolicy(size_policy)
         self.upper_area.setOrientation(QtCore.Qt.Horizontal)
         self.upper_area.setStyleSheet(styles.SPLITTER)
 
         # LEFT-UPPER AREA ---------------------------------------------------------------------
         self.left_area_2 = QtWidgets.QWidget(self.upper_area)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.left_area_2.sizePolicy().hasHeightForWidth())
-        self.left_area_2.setSizePolicy(sizePolicy)
+        size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Preferred)
+        size_policy.setHorizontalStretch(0)
+        size_policy.setVerticalStretch(0)
+        size_policy.setHeightForWidth(self.left_area_2.sizePolicy().hasHeightForWidth())
+        self.left_area_2.setSizePolicy(size_policy)
         self.left_area_2.setMinimumSize(QtCore.QSize(225, 0))
         self.left_area_2.setMaximumSize(QtCore.QSize(225, 16777215))
         self.left_area_2.setStyleSheet(styles.LEFT_AREA)
@@ -149,19 +151,21 @@ class MainWindow(object):
         # BACKEND ---------------------------------------------------------------------
         self.set_listeners()
         self.populate_playlist_list()
-        self.populate_songs_list(self.current_playlist.get_id())
 
-    def set_listeners(self) -> None:
+        if self.current_playlist:
+            self.populate_songs_list(self.current_playlist.get_id())
+
+    def set_listeners(self):
         self.create_playlist_button.clicked.connect(self.create_playlist_button_clicked)
         self.search_box.returnPressed.connect(self.enter_key_pressed)
         self.playlist_name_label.returnPressed.connect(self.playlist_name_label_enter_pressed)
 
-    def playlist_name_label_enter_pressed(self) -> None:
+    def playlist_name_label_enter_pressed(self):
         data_manager.edit_playlist_name(self.current_playlist.get_id(), new_name=self.playlist_name_label.text())
         self.populate_playlist_list()
         DialogBox(icon='success', title='Ok', message='Your playlist name has changed!')
 
-    def create_playlist_button_clicked(self) -> None:
+    def create_playlist_button_clicked(self):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         new_playlist = Playlist(name='New playlist')
         data_manager.insert_new_playlist(playlist=new_playlist)
@@ -169,17 +173,17 @@ class MainWindow(object):
         DialogBox(icon='success', title='Ok', message='A new playlist has been created!')
         self.populate_playlist_list()
 
-    def enter_key_pressed(self) -> None:
+    def enter_key_pressed(self):
         current_playlist_name = self.playlist_name_label.text()
         QApplication.setOverrideCursor(Qt.WaitCursor)
         self.playlist_name_label.setText('Searching ...')
         self.playlist_info_label.setHidden(True)
         QApplication.processEvents()
         try:
-            self.clear_temp_thumbnails()
+            clear_temp_thumbnails()
             search_string = self.search_box.text()
-            videos = youtube_search.search_for_videos(search_string)
-            if len(videos) == 0:
+            youtube_videos = youtube_search.search_for_videos(search_string)
+            if len(youtube_videos) == 0:
                 QApplication.restoreOverrideCursor()
                 DialogBox(icon='danger', title='Oops', message='No videos have been found')
                 self.playlist_name_label.setText(current_playlist_name)
@@ -187,22 +191,18 @@ class MainWindow(object):
                 return
 
             # Sort the videos by view count in descending order
-            videos.sort(key=lambda vid: vid.views, reverse=True)
+            youtube_videos.sort(key=lambda vid: vid.views, reverse=True)
 
-            video_cards = []
-            for index, video in enumerate(videos):
-                thumbnail_path = video.download_thumbnail()
-                video_card = YoutubeVideoCard(
-                    index=str(index + 1),
-                    thumbnail_path=thumbnail_path,
-                    title=video.title,
-                    views=video.views_extense,
-                    duration=video.duration,
-                    video_id=video.id,
-                    video_url=video.url
-                )
-                video_cards.append(video_card)
-            self.populate_video_card_list(video_cards)
+            youtube_videos = [YoutubeVideoCard(
+                    index=str(position + 1),
+                    thumbnail_path=youtube_video.download_thumbnail(),
+                    title=youtube_video.title,
+                    views=youtube_video.views_extense,
+                    duration=youtube_video.duration,
+                    video_id=youtube_video.id,
+                    video_url=youtube_video.url
+                ) for position, youtube_video in enumerate(youtube_videos)]
+            self.populate_video_card_list(youtube_videos)
             self.playlist_name_label.setText(f'Results for "{search_string}"')
 
         except Exception as e:
@@ -212,10 +212,16 @@ class MainWindow(object):
             self.playlist_info_label.setHidden(False)
         QApplication.restoreOverrideCursor()
 
-    def clear_temp_thumbnails(self) -> None:
-        os_utils.clear_folder(STORAGE_TEMP_THUMBNAILS_FOLDER)
+    def load_first_playlist(self):
+        playlist = data_manager.get_playlist(playlist_id=1)
+        if playlist is None:
+            playlist = Playlist(name='Teste')
+            playlist_id = data_manager.insert_new_playlist(playlist)
+            playlist = data_manager.get_playlist(playlist_id=playlist_id)
+        playlist_card = PlaylistCard(id=playlist.id, name=playlist.name)
+        self.current_playlist = playlist_card
 
-    def populate_playlist_list(self) -> None:
+    def populate_playlist_list(self):
         self.playlist_list.clear()
         data = data_manager.get_all_playlists()
         playlists = []
@@ -225,7 +231,7 @@ class MainWindow(object):
                 playlists.append(playlist_card)
         self.playlist_list.set_items(playlists)
 
-    def populate_songs_list(self, playlist_id: int) -> None:
+    def populate_songs_list(self, playlist_id):
         self.songs_list.clear()
         playlist = data_manager.get_playlist(playlist_id=playlist_id)
         self.playlist_name_label.setText(playlist.name)
@@ -247,9 +253,11 @@ class MainWindow(object):
                 song_list.append(song_card)
                 songs_paths.append(song.file_path)
             self.playlist_info_label.setHidden(False)
-            self.playlist_info_label.setText(f'{str(len(songs))} songs, {utils.time_formatter_extense(playlist_total_time)}')
+            self.playlist_info_label.setText(
+                f'{str(len(songs))} songs, {utils.time_formatter_extense(playlist_total_time)}'
+            )
         self.songs_list.set_items(song_list)
         self.audio_controller.populate_playlist(songs_paths)
 
-    def populate_video_card_list(self, video_cards: typing.List[YoutubeVideoCard]) -> None:
+    def populate_video_card_list(self, video_cards):
         self.songs_list.set_items(video_cards)

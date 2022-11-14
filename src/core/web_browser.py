@@ -1,5 +1,5 @@
 import webbrowser
 
 
-def browse(url: str) -> None:
+def browse(url):
     webbrowser.open(url, new=1)

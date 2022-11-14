@@ -2,7 +2,7 @@ import os
 from pytube import YouTube
 
 
-def download_video_in_mp3(video_url: str, filename: str, destination_folder: str = os.getcwd()) -> bool:
+def download_video_in_mp3(video_url, filename, destination_folder=os.getcwd()):
     try:
         yt = YouTube(video_url)
         video = yt.streams.filter(only_audio=True).first()

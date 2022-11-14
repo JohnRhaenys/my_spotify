@@ -1,5 +1,4 @@
 import os
-import typing
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QCursor
@@ -62,7 +61,7 @@ class YoutubeVideoCard(QWidget):
         self.add_song_button.setFixedHeight(40)
         self.add_song_button.setFixedWidth(100)
         self.add_song_button.setHidden(True)
-        self.add_song_button.mousePressEvent = self.add_to_playlist
+        self.add_song_button.mousePressEvent = self.add_to_playlist_button_pressed
 
         self.allQHBoxLayout.addWidget(self.open_browser_button)
         self.allQHBoxLayout.addWidget(self.video_thumbnail)
@@ -73,7 +72,7 @@ class YoutubeVideoCard(QWidget):
         self.setLayout(self.allQHBoxLayout)
         self.set_styles()
 
-    def add_to_playlist(self, _) -> None:
+    def add_to_playlist_button_pressed(self, _):
 
         if self.already_exists():
             DialogBox(icon='warning', title='Info', message='This song is already in your playlist')
@@ -136,7 +135,7 @@ class YoutubeVideoCard(QWidget):
 
         QApplication.restoreOverrideCursor()
 
-    def download_mp3(self) -> typing.List[str] or None:
+    def download_mp3(self):
         try:
             yt = YouTube(self.video_url)
             video = yt.streams.filter(only_audio=True).first()
@@ -148,27 +147,28 @@ class YoutubeVideoCard(QWidget):
                 filename=f'{file_name}.mp3'
             )
         except Exception as e:
+            print(e)
             raise Exception(e)
 
-    def already_exists(self) -> bool:
+    def already_exists(self):
         folder = f'{os.path.join(STORAGE_SONGS_FOLDER, self.video_id)}'
         return os_utils.folder_exists(folder)
 
-    def on_mouse_hover(self, _) -> None:
+    def on_mouse_hover(self, _):
         pixmap_image = QPixmap("assets/images/browser.png")
         self.open_browser_button.setPixmap(pixmap_image)
         self.open_browser_button.setScaledContents(True)
         self.open_browser_button.setAlignment(Qt.AlignCenter)
         self.add_song_button.setHidden(False)
 
-    def on_browser_icon_mouse_hover(self, _) -> None:
+    def on_browser_icon_mouse_hover(self, _):
         self.open_browser_button.setCursor(QCursor(Qt.PointingHandCursor))
 
-    def on_mouse_leave(self, _) -> None:
+    def on_mouse_leave(self, _):
         self.open_browser_button.setText(str(self.index))
         self.add_song_button.setHidden(True)
 
-    def set_styles(self) -> None:
+    def set_styles(self):
         self.open_browser_button.setStyleSheet(styles.REGULAR_GRAY_TEXT_14)
         self.video_thumbnail.setStyleSheet(styles.REGULAR_GRAY_TEXT_14)
         self.video_title.setStyleSheet(styles.REGULAR_WHITE_TEXT_14)
@@ -176,12 +176,12 @@ class YoutubeVideoCard(QWidget):
         self.video_duration.setStyleSheet(styles.REGULAR_GRAY_TEXT_14)
         self.add_song_button.setStyleSheet(styles.ADD_BUTTON)
 
-    def set_thumbnail_image(self, image_path: str) -> None:
+    def set_thumbnail_image(self, image_path):
         pix_map = QPixmap(image_path).scaled(45, 45)
         self.video_thumbnail.setPixmap(pix_map)
 
-    def get_video_id(self) -> str:
+    def get_video_id(self):
         return self.video_id
 
-    def get_video_url(self) -> str:
+    def get_video_url(self):
         return self.video_url
